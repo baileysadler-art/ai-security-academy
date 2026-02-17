@@ -145,3 +145,64 @@ function getAllLessonsWithContext(): {
   }
   return result;
 }
+
+// ============================================================
+// SEQUENTIAL GATING HELPERS
+// ============================================================
+
+/** Phase is unlocked if it's the first phase OR all lessons in the previous phase are complete */
+export function isPhaseUnlocked(
+  phaseId: string,
+  completedIds: string[]
+): boolean {
+  const phaseIndex = curriculum.findIndex((p) => p.id === phaseId);
+  if (phaseIndex <= 0) return true; // first phase always unlocked
+  const prevPhase = curriculum[phaseIndex - 1];
+  const prevLessons = prevPhase.modules.flatMap((m) => m.lessons);
+  return prevLessons.every((l) => completedIds.includes(l.id));
+}
+
+/** Module is unlocked if its phase is unlocked AND it's the first module in its phase OR all lessons in the previous module are complete */
+export function isModuleUnlocked(
+  moduleId: string,
+  completedIds: string[]
+): boolean {
+  for (const phase of curriculum) {
+    const moduleIndex = phase.modules.findIndex((m) => m.id === moduleId);
+    if (moduleIndex === -1) continue;
+
+    // Phase itself must be unlocked
+    if (!isPhaseUnlocked(phase.id, completedIds)) return false;
+
+    // First module in phase is unlocked (if phase is unlocked)
+    if (moduleIndex === 0) return true;
+
+    // Previous module's lessons must all be complete
+    const prevModule = phase.modules[moduleIndex - 1];
+    return prevModule.lessons.every((l) => completedIds.includes(l.id));
+  }
+  return false;
+}
+
+/** Lesson is unlocked if its module is unlocked AND it's the first lesson in the module OR the previous lesson is complete */
+export function isLessonUnlocked(
+  lessonId: string,
+  completedIds: string[]
+): boolean {
+  for (const phase of curriculum) {
+    for (const module of phase.modules) {
+      const lessonIndex = module.lessons.findIndex((l) => l.id === lessonId);
+      if (lessonIndex === -1) continue;
+
+      // Module must be unlocked
+      if (!isModuleUnlocked(module.id, completedIds)) return false;
+
+      // First lesson in module is unlocked (if module is unlocked)
+      if (lessonIndex === 0) return true;
+
+      // Previous lesson must be complete
+      return completedIds.includes(module.lessons[lessonIndex - 1].id);
+    }
+  }
+  return false;
+}

@@ -21,6 +21,9 @@ import {
   getPhaseProgress as getPhProgress,
   getOverallProgress as getOvProgress,
   getTotalLessonCount,
+  isPhaseUnlocked as checkPhaseUnlocked,
+  isModuleUnlocked as checkModuleUnlocked,
+  isLessonUnlocked as checkLessonUnlocked,
 } from "@/lib/curriculum-helpers";
 
 interface ProgressContextValue {
@@ -40,6 +43,9 @@ interface ProgressContextValue {
   getAverageQuizScore: () => number;
   getTotalEstimatedHoursRemaining: () => number;
   resetProgress: () => void;
+  isPhaseUnlocked: (phaseId: string) => boolean;
+  isModuleUnlocked: (moduleId: string) => boolean;
+  isLessonUnlocked: (lessonId: string) => boolean;
 }
 
 const ProgressContext = createContext<ProgressContextValue | null>(null);
@@ -125,6 +131,21 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     return Math.round((remainingLessons * 30) / 60);
   }, [progress.lessonsCompleted]);
 
+  const isPhaseUnlocked = useCallback(
+    (phaseId: string) => checkPhaseUnlocked(phaseId, progress.lessonsCompleted),
+    [progress.lessonsCompleted]
+  );
+
+  const isModuleUnlocked = useCallback(
+    (moduleId: string) => checkModuleUnlocked(moduleId, progress.lessonsCompleted),
+    [progress.lessonsCompleted]
+  );
+
+  const isLessonUnlockedFn = useCallback(
+    (lessonId: string) => checkLessonUnlocked(lessonId, progress.lessonsCompleted),
+    [progress.lessonsCompleted]
+  );
+
   const resetProgress = useCallback(() => {
     const fresh = getDefaultProgress();
     updateProgress(fresh);
@@ -145,6 +166,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         getAverageQuizScore,
         getTotalEstimatedHoursRemaining,
         resetProgress,
+        isPhaseUnlocked,
+        isModuleUnlocked,
+        isLessonUnlocked: isLessonUnlockedFn,
       }}
     >
       {children}
