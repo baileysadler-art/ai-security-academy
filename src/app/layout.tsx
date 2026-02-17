@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Archon AI — AI Health Checks & Security for Enterprise",
+  title: "AI Security Academy — Self-Paced Learning Platform",
   description:
-    "Comprehensive AI health checks, security audits, and compliance reviews. Protect your AI systems before they become a liability.",
+    "A structured, self-paced course covering tech fundamentals through AI security consulting — with Databricks courses integrated as companion learning.",
 };
 
 export default function RootLayout({
